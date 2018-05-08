@@ -47,13 +47,12 @@ class UserLogin(APIView):
 
     def post(self,request ,*args, **kwargs):
         print(request.data)
-        # try:
-        data = request.data
-        username = data['username']
-        password = data['password']
-
-        user = authenticate(username=username, password=password)
         try:
+            data = request.data
+            username = data['username']
+            password = data['password']
+
+            user = authenticate(username=username, password=password)
             if user is not None:
                 login(request,user)
                 request.session['username'] = username
@@ -61,14 +60,14 @@ class UserLogin(APIView):
             else:
                 return Response({"message": "Login Failed ", "status":200 }, status=200)
         except:
-            return Response({"message": "Login Failed ", "status": 200}, status=200)
+            return Response({"message": "Login Error ", "status": 200}, status=200)
 
 
 
 class ListUsers(APIView):
 
-    # authentication_classes = (authentication.SessionAuthentication,)
-    # permission_classes = (permissions.IsAdminUser,)
+    authentication_classes = (authentication.SessionAuthentication,)
+    permission_classes = (permissions.IsAdminUser,)
 
     def get(self, request, format=None):
         """
@@ -129,7 +128,6 @@ class PostTodo(APIView):
         except:
             foo = {"message": "Failed to add todo"}
             return Response(foo, status=200)
-
 
 
 
