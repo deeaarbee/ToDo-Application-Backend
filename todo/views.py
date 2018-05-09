@@ -1,5 +1,3 @@
-from django.shortcuts import render
-
 # Create your views here.
 
 from rest_framework.views import APIView
@@ -7,10 +5,6 @@ from rest_framework.response import Response
 from rest_framework import authentication, permissions
 from rest_framework.permissions import IsAuthenticated
 
-from rest_framework.decorators import api_view, permission_classes
-
-
-from rest_framework.parsers import JSONParser, FormParser
 from rest_framework.renderers import JSONRenderer
 
 # from ToDoApp.todo.models import User
@@ -19,6 +13,7 @@ from .models import TodoBoard, User
 
 import uuid, datetime
 
+from todo.manager import RequestManager
 
 class SessionAuthNoCSRF(authentication.SessionAuthentication):
 
@@ -29,36 +24,23 @@ class SessionAuthNoCSRF(authentication.SessionAuthentication):
 class CreateUser(APIView):
 
     def post(self,request, *args, **kwargs):
-        print(request.data)
-        # try:
-        data = request.data
-        username = data['username']
-        email = data['email']
-        password = data['password']
-        roll = data['rollnumber']
-        user = User.objects.create_user(username, email, password, rollnumber=roll)
-        user.save()
-        return Response({"message": "User Added Successfully", "status":200}, status=200)
-        # except:
-        #     return Response({"message": "User cannot be Added ", "status":201}, status=200)
+        try:
+            manager = RequestManager()
+            user = manager.set_request(request).register()
+            return Response({"message": "User Added Successfully", "username":user.username, "status":200}, status=200)
+        except:
+            return Response({"message": "User cannot be Added ", "status":201}, status=200)
 
 
 class UserLogin(APIView):
 
-    def post(self,request ,*args, **kwargs):
-        print(request.data)
-        try:
-            data = request.data
-            username = data['username']
-            password = data['password']
+    @staticmethod
+    def post(request ,*args, **kwargs):
 
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request,user)
-                request.session['username'] = username
-                return Response({"message": "Login success ", "status":200 }, status=200)
-            else:
-                return Response({"message": "Login Failed ", "status":200 }, status=200)
+        try:
+            manager = RequestManager()
+            user = manager.set_request(request).userlogin()
+            return Response({"message": "Login success ","username":user.username ,"status":200 }, status=200)
         except:
             return Response({"message": "Login Error ", "status": 200}, status=200)
 
@@ -173,3 +155,4 @@ class ViewTodo(APIView):
         }
         status = {"data":data, "message": "Retrieved successfully", "status": 200}
         return Response(status, status=200)
+
